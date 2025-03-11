@@ -8,9 +8,13 @@ class Auth extends ChangeNotifier {
   final TextEditingController passwordController = TextEditingController();
   String errorMessage = "";
   bool isAuthenticated = false; // Track auth state
+  Map<String, dynamic>? _user; // Store user data
+
+  // Getter for user data
+  Map<String, dynamic>? get user => _user;
 
   Future<void> signIn(BuildContext context) async {
-    const String apiUrl = 'http://192.168.0.100:8000/api/employee/sign-in';
+    const String apiUrl = 'http://192.168.0.101:8000/api/employee/sign-in';
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
@@ -30,28 +34,32 @@ class Auth extends ChangeNotifier {
         print('Login successful: ${data['name']}');
         print('Login successful: ${data['id']}');
 
-        // ✅ Save user data to SharedPreferences
+        // Save user data to SharedPreferences
         final SharedPreferences prefs = await SharedPreferences.getInstance();
-
         await prefs.setString(
           'user',
           jsonEncode({
             'name': data['name'] ?? '',
             'email': data['email'] ?? '',
             'token': data['token'] ?? '',
-            'id':
-                data['id']?.toString() ?? '', // Convert ID to String for safety
+            'id': data['id']?.toString() ?? '', // Convert ID to String for safety
           }),
         );
 
-        // Debug: Retrieve immediately after storing
-        print("✅ Saved User Data: ${prefs.getString('user')}");
+        // Update the user property
+        _user = {
+          'name': data['name'],
+          'email': data['email'],
+          'token': data['token'],
+          'id': data['id']?.toString(),
+        };
 
         // Clear error message
         errorMessage = "";
+        isAuthenticated = true;
         notifyListeners();
 
-        // ✅ Navigate to dashboard
+        // Navigate to dashboard
         Navigator.pushReplacementNamed(context, '/dashboard');
       } else {
         errorMessage = data['message'] ?? "An error occurred";
@@ -65,9 +73,10 @@ class Auth extends ChangeNotifier {
 
   Future<void> checkLoginStatus(BuildContext context) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
+    String? userJson = prefs.getString('user');
 
-    if (token != null) {
+    if (userJson != null) {
+      _user = jsonDecode(userJson);
       isAuthenticated = true;
       notifyListeners();
 
@@ -78,9 +87,9 @@ class Auth extends ChangeNotifier {
 
   Future<void> logout(BuildContext context) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('id');
     await prefs.remove('user');
 
+    _user = null;
     isAuthenticated = false;
     notifyListeners();
 
