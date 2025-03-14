@@ -16,7 +16,7 @@ class _LoginState extends State<Login> {
   @override
   void initState() {
     super.initState();
-    Provider.of<Auth>(context, listen: false).checkLoginStatus(context);
+    Provider.of<Auth>(context, listen: false).checkLoginStatus();
   }
 
   Future<void> _signIn(BuildContext context) async {

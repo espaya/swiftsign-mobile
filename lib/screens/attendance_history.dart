@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:swift_mobile/inc/auth.dart';
+import 'package:swift_mobile/screens/login_screen.dart';
 import 'package:swift_mobile/uitls/my_appbar.dart';
+import 'package:swift_mobile/uitls/my_list_view.dart';
 
 class AttendanceHistory extends StatefulWidget {
   const AttendanceHistory({super.key});
@@ -11,159 +15,23 @@ class AttendanceHistory extends StatefulWidget {
 class _AttendanceHistoryState extends State<AttendanceHistory> {
   @override
   Widget build(BuildContext context) {
+    final auth = Provider.of<Auth>(context);
+
+    // Redirect to Login if the user is not logged in
+    if (auth.user == null || auth.user!['id'] == null) {
+      Future.microtask(() {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Login()),
+        );
+      });
+    }
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: MyAppBar(context),
-      body: Padding(
-        padding: const EdgeInsets.all(50),
-        child: ListView(
-          shrinkWrap: true, // Allow it to take only the space it needs
-          children: const [
-            Padding(
-              padding: EdgeInsets.only(bottom: 8.0),
-              child: ListTile(
-                leading: Icon(Icons.lock_clock),
-                title: Text("Night Action"),
-                subtitle: Text('Dec 24, 2024'),
-                trailing: Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                ),
-                tileColor: Colors.black12,
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(bottom: 8.0),
-              child: ListTile(
-                leading: Icon(Icons.lock_clock),
-                title: Text("Night Action"),
-                subtitle: Text('Dec 24, 2024'),
-                trailing: Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                ),
-                tileColor: Colors.black12,
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(bottom: 8.0),
-              child: ListTile(
-                leading: Icon(Icons.lock_clock),
-                title: Text("Night Action"),
-                subtitle: Text('Dec 24, 2024'),
-                trailing: Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                ),
-                tileColor: Colors.black12,
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(bottom: 8.0),
-              child: ListTile(
-                leading: Icon(Icons.lock_clock),
-                title: Text("Night Action"),
-                subtitle: Text('Dec 24, 2024'),
-                trailing: Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                ),
-                tileColor: Colors.black12,
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(bottom: 8.0),
-              child: ListTile(
-                leading: Icon(Icons.lock_clock),
-                title: Text("Night Action"),
-                subtitle: Text('Dec 24, 2024'),
-                trailing: Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                ),
-                tileColor: Colors.black12,
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(bottom: 8.0),
-              child: ListTile(
-                leading: Icon(Icons.lock_clock),
-                title: Text("Night Action"),
-                subtitle: Text('Dec 24, 2024'),
-                trailing: Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                ),
-                tileColor: Colors.black12,
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(bottom: 8.0),
-              child: ListTile(
-                leading: Icon(Icons.lock_clock),
-                title: Text("Night Action"),
-                subtitle: Text('Dec 24, 2024'),
-                trailing: Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                ),
-                tileColor: Colors.black12,
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(bottom: 8.0),
-              child: ListTile(
-                leading: Icon(Icons.lock_clock),
-                title: Text("Night Action"),
-                subtitle: Text('Dec 24, 2024'),
-                trailing: Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                ),
-                tileColor: Colors.black12,
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(bottom: 8.0),
-              child: ListTile(
-                leading: Icon(Icons.lock_clock),
-                title: Text("Night Action"),
-                subtitle: Text('Dec 24, 2024'),
-                trailing: Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                ),
-                tileColor: Colors.black12,
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(bottom: 8.0),
-              child: ListTile(
-                leading: Icon(Icons.lock_clock),
-                title: Text("Night Action"),
-                subtitle: Text('Dec 24, 2024'),
-                trailing: Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                ),
-                tileColor: Colors.black12,
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(bottom: 8.0),
-              child: ListTile(
-                leading: Icon(Icons.lock_clock),
-                title: Text("Night Action"),
-                subtitle: Text('Dec 24, 2024'),
-                trailing: Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                ),
-                tileColor: Colors.black12,
-              ),
-            ),
-          ],
-        ),
+      body: const Padding(
+        padding: EdgeInsets.only(top: 120, bottom: 100, left: 20, right: 20),
+        child: MyListView(),
       ),
     );
   }

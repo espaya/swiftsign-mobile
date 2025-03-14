@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:swift_mobile/inc/auth.dart';
+import 'package:swift_mobile/screens/login_screen.dart';
 import 'package:swift_mobile/uitls/my_appbar.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -18,6 +21,8 @@ class _NewAttendanceState extends State<NewAttendance> {
   bool _isScanningEnabled = false; // Flag to control scanning behavior
   bool _isCameraRunning = false; // Track if the camera is running
   bool _hasScanned = false; // Track if a scan has already been processed
+  List<String> _scannedCodes = []; // Store all scanned QR codes
+  DateTime? _lastScanTime; // Track the time of the last scan
 
   @override
   void initState() {
@@ -46,44 +51,60 @@ class _NewAttendanceState extends State<NewAttendance> {
   void processScannedCode(String scannedData) async {
     if (!_isScanningEnabled || _hasScanned) return;
 
-    try {
-      if (await Vibration.hasVibrator()) {
-        Vibration.vibrate(duration: 100);
+    // Debouncing: Check if the same QR code was scanned recently
+    if (_lastScanTime != null &&
+        DateTime.now().difference(_lastScanTime!) <
+            const Duration(seconds: 1)) {
+      print("🔄 Ignoring duplicate scan: $scannedData");
+      return;
+    }
+
+    // Add the scanned code to the list
+    setState(() {
+      _scannedCodes.add(scannedData);
+    });
+
+    // Process only the first scan
+    if (_scannedCodes.length == 1) {
+      try {
+        if (await Vibration.hasVibrator()) {
+          Vibration.vibrate(duration: 100);
+        }
+
+        String decodedString = utf8.decode(base64.decode(scannedData));
+        print("✅ Decoded Data: $decodedString");
+
+        Map<String, dynamic> jsonData = jsonDecode(decodedString);
+        String sessionId = jsonData['session_id'];
+        String timestamp = jsonData['timestamp'];
+        String expiresAt = jsonData['expires_at'];
+        String checkoutAt = jsonData['checkout_at'];
+
+        print("🆔 Session ID: $sessionId");
+        print("⏳ Timestamp: $timestamp");
+
+        final prefs = await SharedPreferences.getInstance();
+        String userID = prefs.getString('id').toString();
+
+        print("User ID: $userID");
+
+        await sendScannedDataToServer(
+            sessionId, timestamp, expiresAt, checkoutAt);
+
+        // Disable scanning after successful scan
+        setState(() {
+          _isScanningEnabled = false;
+          _hasScanned = true;
+          _lastScanTime = DateTime.now(); // Store the last scan time
+        });
+
+        // showSnackBar("✅ Attendance logged successfully!");
+      } catch (e) {
+        print("❌ Error processing QR code: $e");
+        handleInvalidData();
       }
-
-      String decodedString = utf8.decode(base64.decode(scannedData));
-      print("✅ Decoded Data: $decodedString");
-
-      Map<String, dynamic> jsonData = jsonDecode(decodedString);
-      String sessionId = jsonData['session_id'];
-      String timestamp = jsonData['timestamp'];
-      String expiresAt = jsonData['expires_at'];
-      String checkoutAt = jsonData['checkout_at'];
-
-      print("🆔 Session ID: $sessionId");
-      print("⏳ Timestamp: $timestamp");
-
-      final prefs = await SharedPreferences.getInstance();
-      String userID = prefs.getString('id').toString();
-
-      print("UserID: $userID");
-
-      await sendScannedDataToServer(
-          sessionId, timestamp, expiresAt, checkoutAt);
-
-      // Disable scanning and stop the camera
-      setState(() {
-        _isScanningEnabled = false;
-        _hasScanned = true;
-      });
-
-      await cameraController.stop();
-      setState(() {
-        _isCameraRunning = false; // Update camera state
-      });
-    } catch (e) {
-      print("❌ Error processing QR code: $e");
-      handleInvalidData();
+    } else {
+      print("🔄 Ignoring subsequent scan: $scannedData");
     }
   }
 
@@ -108,7 +129,7 @@ class _NewAttendanceState extends State<NewAttendance> {
         print("❌ User data not found in SharedPreferences");
       }
 
-      print("UserID: $userID");
+      print("User ID: $userID");
 
       Map<String, dynamic> body = {
         "session_id": sessionId,
@@ -125,26 +146,37 @@ class _NewAttendanceState extends State<NewAttendance> {
 
       if (response.statusCode == 200) {
         print("✅ Successfully logged attendance: ${response.body}");
-        showSnackBar("✅ Attendance logged successfully!");
-      } else if (response.statusCode == 422) {
-        // Handle Laravel validation errors
         Map<String, dynamic> responseData = jsonDecode(response.body);
-        if (responseData.containsKey('errors')) {
-          String errorMessages = responseData['errors']
-              .values
-              .map((errorList) => errorList.join("\n"))
-              .join("\n");
-
-          print("⚠️ Validation Errors: $errorMessages");
-          showSnackBar("⚠️ $errorMessages");
-        } else {
-          print("⚠️ Unexpected validation error format: ${response.body}");
-          showSnackBar("⚠️ Validation failed. Please check your input.");
-        }
+        showSnackBar(responseData['message']);
       } else {
+        Map<String, dynamic> responseData = jsonDecode(response.body);
+        String errorMessage = responseData.containsKey('message')
+            ? responseData['message']
+            : "Unknown error occurred.";
+
         print(
             "⚠️ Failed to send data. Status: ${response.statusCode}, Response: ${response.body}");
-        showSnackBar("⚠️ Failed to log attendance!");
+
+        // Displaying the 400 error
+        if (response.statusCode == 400) {
+          showSnackBar(errorMessage); // Show message in UI
+        } else if (response.statusCode == 422) {
+          // Laravel validation errors
+          if (responseData.containsKey('errors')) {
+            String errorMessages = responseData['errors']
+                .values
+                .map((errorList) => errorList.join("\n"))
+                .join("\n");
+
+            print("⚠️ Validation Errors: $errorMessages");
+            showSnackBar("⚠️ $errorMessages");
+          } else {
+            print("⚠️ Unexpected validation error format: ${response.body}");
+            showSnackBar("⚠️ Validation failed. Please check your input.");
+          }
+        } else {
+          showSnackBar("⚠️ Failed to log attendance: $errorMessage");
+        }
       }
     } catch (e) {
       print("❌ Error sending data to server: $e");
@@ -173,6 +205,17 @@ class _NewAttendanceState extends State<NewAttendance> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = Provider.of<Auth>(context);
+
+    // Redirect to Login if the user is not logged in
+    if (auth.user == null || auth.user!['id'] == null) {
+      Future.microtask(() {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Login()),
+        );
+      });
+    }
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: MyAppBar(context),
@@ -225,8 +268,9 @@ class _NewAttendanceState extends State<NewAttendance> {
                       });
                     },
                     onDetect: (capture) async {
-                      if (!mounted || _hasScanned)
-                        return; // Exit if a scan has already been processed
+                      if (!mounted || !_isScanningEnabled || _hasScanned) {
+                        return; // Exit if scanning is disabled or a scan has already been processed
+                      }
                       for (final barcode in capture.barcodes) {
                         if (barcode.rawValue != null) {
                           processScannedCode(barcode.rawValue!);
@@ -264,24 +308,35 @@ class _NewAttendanceState extends State<NewAttendance> {
                   child: Center(
                     child: IconButton(
                       onPressed: () async {
-                        setState(() {
-                          _isScanningEnabled = true; // Enable scanning
-                          _hasScanned = false; // Reset scan state
-                        });
-
-                        if (!_isCameraRunning) {
-                          await cameraController.start();
+                        if (_hasScanned) {
+                          // If already scanned, reset the scanning state
                           setState(() {
-                            _isCameraRunning = true; // Camera is running
+                            _isScanningEnabled = true; // Enable scanning
+                            _hasScanned = false; // Reset scan state
+                            _scannedCodes.clear(); // Clear scanned codes
+                            _lastScanTime = null; // Clear last scan time
                           });
+                        } else {
+                          // If not scanned yet, start scanning
+                          setState(() {
+                            _isScanningEnabled = true; // Enable scanning
+                            _hasScanned = false; // Reset scan state
+                          });
+
+                          if (!_isCameraRunning) {
+                            await cameraController.start();
+                            setState(() {
+                              _isCameraRunning = true; // Camera is running
+                            });
+                          }
                         }
                       },
-                      icon: Icon(
+                      icon: const Icon(
                         Icons.qr_code,
                         size: 40.0,
                         color: Colors.white,
                       ),
-                      padding: EdgeInsets.all(15),
+                      padding: const EdgeInsets.all(15),
                       splashRadius: 35,
                     ),
                   ),

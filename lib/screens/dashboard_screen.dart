@@ -1,7 +1,10 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'package:swift_mobile/inc/auth.dart';
+import 'package:swift_mobile/inc/get_profile_pic.dart';
+import 'package:swift_mobile/screens/login_screen.dart';
 import 'package:swift_mobile/uitls/my_appbar.dart';
+import 'package:swift_mobile/uitls/my_list_view.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -14,38 +17,66 @@ class _DashboardState extends State<Dashboard> {
   String userName = ""; // Store user name
   String email = ""; // Store user email
 
+  Auth auth = Auth();
+
   @override
   void initState() {
     super.initState();
-    loadUserData(); // Load data when screen initializes
+    _loadUserData(); // Load data when screen initializes
   }
 
-  Future<void> loadUserData() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? userData = prefs.getString('user'); // Retrieve user data
-
-    if (userData != null) {
-      Map<String, dynamic> user = jsonDecode(userData); // Convert JSON to Map
-
+  Future<void> _loadUserData() async {
+    final auth = Provider.of<Auth>(context, listen: false);
+    if (auth.user != null) {
       setState(() {
-        userName = user['name'] ?? "User"; // Set user name
-        email = user['email'] ?? "No email"; // Set email
+        userName = auth.user!['name'] ?? "User";
+        email = auth.user!['email'] ?? "user@example.com";
       });
+
+      // Fetch the profile picture URL
+      String? userId = auth.user!['id'];
+      if (userId != null) {
+        GetProfilePic getProfilePic = GetProfilePic();
+        String? imageUrl =
+            await getProfilePic.fetchProfilePicture(userId, context);
+        if (imageUrl != null) {
+          setState(() {
+// Update the profile picture URL
+          });
+        }
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = Provider.of<Auth>(context);
+
+    // Redirect to Login if the user is not logged in
+    if (auth.user == null || auth.user!['id'] == null) {
+      Future.microtask(() {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Login()),
+        );
+      });
+    }
     return Scaffold(
+      backgroundColor: Colors.purple[50],
       appBar: MyAppBar(context),
-      drawer: const Drawer(),
+      // drawer: const Drawer(),
+      // bottomNavigationBar:  const BottomAppBar(
+      //   child: Row(
+      //     children: [Icon(Icons.home)],
+      //   ),
+      // ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.only(left: 30, right: 30),
+          padding: const EdgeInsets.only(left: 30, right: 30, top: 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
+              const SizedBox(height: 0),
               Text(
                 "Welcome, $userName",
                 style:
@@ -79,6 +110,16 @@ class _DashboardState extends State<Dashboard> {
                           end: Alignment.bottomRight,
                         ),
                         borderRadius: BorderRadius.circular(25),
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                Colors.black.withOpacity(0.3), // Shadow color
+                            blurRadius: 10, // Softness of shadow
+                            spreadRadius: 3, // Spread distance
+                            offset: const Offset(
+                                4, 6), // Horizontal and vertical shadow offset
+                          ),
+                        ],
                       ),
                       child: Column(
                         children: [
@@ -92,12 +133,14 @@ class _DashboardState extends State<Dashboard> {
                               child: const Icon(
                                 Icons.qr_code,
                                 size: 90,
+                                color: Colors.white, // Make icon more visible
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
+
                     const Spacer(), // Pushes containers apart
                     Container(
                       margin: const EdgeInsets.only(top: 20),
@@ -110,6 +153,16 @@ class _DashboardState extends State<Dashboard> {
                           end: Alignment.bottomRight,
                         ),
                         borderRadius: BorderRadius.circular(25),
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                Colors.black.withOpacity(0.3), // Shadow color
+                            blurRadius: 10, // Softness of shadow
+                            spreadRadius: 3, // Spread distance
+                            offset: const Offset(
+                                4, 6), // Horizontal and vertical shadow offset
+                          ),
+                        ],
                       ),
                       child: Column(
                         children: [
@@ -123,6 +176,7 @@ class _DashboardState extends State<Dashboard> {
                               child: const Icon(
                                 Icons.history,
                                 size: 90,
+                                color: Colors.white, // Make icon more visible
                               ),
                             ),
                           ),
@@ -131,7 +185,52 @@ class _DashboardState extends State<Dashboard> {
                     ),
                   ],
                 ),
-              )
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 40.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Recent Attendance",
+                      style: TextStyle(color: Colors.black54),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).pushNamed('/attendance-history');
+                      },
+                      child: const Text(
+                        "See All",
+                        style: TextStyle(
+                            color: Colors.blue, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                // margin: const EdgeInsets.only(top: 5.0),
+                padding: EdgeInsets.only(top: 10, bottom: 10),
+                height: 210,
+                // decoration: BoxDecoration(
+                //   borderRadius: BorderRadius.circular(35),
+                //   color: Colors.purple[50],
+                //   boxShadow: [
+                //     BoxShadow(
+                //       color: Colors.black.withOpacity(0.3), // Shadow color
+                //       blurRadius: 10, // Softness of shadow
+                //       spreadRadius: 3, // Spread distance
+                //       offset: const Offset(0, 5), // Vertical shadow offset
+                //     ),
+                //   ],
+                // ),
+                child: ClipRRect(
+                  borderRadius:
+                      BorderRadius.circular(35), // Apply border radius to child
+                  child: const MyListView(itemCount: 2),
+                ),
+              ),
             ],
           ),
         ),
