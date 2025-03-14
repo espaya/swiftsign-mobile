@@ -23,7 +23,7 @@ class Auth extends ChangeNotifier {
           'Accept': 'application/json'
         },
         body: jsonEncode({
-          'email': emailController.text,
+          'email': emailController.text.trim(),
           'password': passwordController.text,
         }),
       );
@@ -61,7 +61,7 @@ class Auth extends ChangeNotifier {
         notifyListeners();
 
         // Navigate to dashboard
-        Navigator.pushReplacementNamed(context, '/dashboard');
+        Navigator.of(context).pushNamed('/dashboard');
       } else {
         errorMessage = data['message'] ?? "An error occurred";
         notifyListeners();
@@ -72,17 +72,15 @@ class Auth extends ChangeNotifier {
     }
   }
 
-  Future<void> checkLoginStatus(BuildContext context) async {
+  Future<void> checkLoginStatus() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userJson = prefs.getString('user');
 
     if (userJson != null) {
-      _user = jsonDecode(userJson);
+      final Map<String, dynamic> userData = jsonDecode(userJson);
+      _user = userData;
       isAuthenticated = true;
       notifyListeners();
-
-      // Redirect to Dashboard
-      Navigator.pushReplacementNamed(context, '/dashboard');
     }
   }
 
@@ -95,7 +93,7 @@ class Auth extends ChangeNotifier {
     notifyListeners();
 
     // Redirect to Login
-    Navigator.pushReplacementNamed(context, '/login');
+    Navigator.of(context).pushNamed('/login');
   }
 
   Future<String?> fetchProfilePicture(String userId) async {
