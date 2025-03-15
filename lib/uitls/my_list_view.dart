@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert'; // For decoding JSON
 import 'package:http/http.dart' as http; // For API calls
 import 'package:shared_preferences/shared_preferences.dart'; // For storing userId
+import 'dart:async'; // For Timer
 
 class MyListView extends StatefulWidget {
   final int? itemCount; // Optional itemCount parameter
@@ -16,11 +17,25 @@ class _MyListViewState extends State<MyListView> {
   List<dynamic> _attendanceData = []; // Holds fetched data
   bool _isLoading = true; // Loading state
   String? _userId; // User ID from SharedPreferences
+  Timer? _timer; // Timer for periodic fetching
 
   @override
   void initState() {
     super.initState();
     _loadUserId(); // Load user ID before fetching data
+
+    // Start a timer to fetch data every 3 seconds
+    _timer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
+      if (_userId != null) {
+        _fetchAttendance(_userId!);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel(); // Cancel the timer when the widget is disposed
+    super.dispose();
   }
 
   Future<void> _loadUserId() async {
@@ -72,17 +87,22 @@ class _MyListViewState extends State<MyListView> {
   Widget build(BuildContext context) {
     return _isLoading
         ? const Center(
-            child: CircularProgressIndicator()) // Show loading spinner
+            child: CircularProgressIndicator(), // Show loading spinner
+          )
         : _userId == null
             ? const Center(child: Text("User not found"))
             : _attendanceData.isEmpty
                 ? const Center(
                     child:
-                        Text("No attendance data found")) // Handle empty data
+                        Text("No attendance data found"), // Handle empty data
+                  )
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 10),
-                    itemCount: widget.itemCount ??
-                        _attendanceData.length, // Use dynamic itemCount
+                    itemCount: widget.itemCount != null
+                        ? (widget.itemCount! <= _attendanceData.length
+                            ? widget.itemCount
+                            : _attendanceData.length)
+                        : _attendanceData.length, // Use dynamic itemCount
                     itemBuilder: (context, index) {
                       final attendance = _attendanceData[index];
                       return Card(
@@ -96,13 +116,13 @@ class _MyListViewState extends State<MyListView> {
                           ),
                           leading: CircleAvatar(
                             backgroundColor:
-                                Colors.purple.withValues(alpha: 0.5),
+                                Colors.purple.withValues(alpha: 0.2),
                             child: const Icon(Icons.work_history_rounded,
                                 color: Colors.purple),
                           ),
                           trailing: CircleAvatar(
                             backgroundColor: attendance['expired'] == "NO"
-                                ? Colors.green.withValues(green: 0.2)
+                                ? Colors.green.withValues(alpha: 0.2)
                                 : Colors.red.withValues(red: 0.2),
                             child: Icon(
                               attendance['expired'] == "NO"
