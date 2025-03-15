@@ -81,7 +81,8 @@ class _MyListViewState extends State<MyListView> {
                         Text("No attendance data found")) // Handle empty data
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 10),
-                    itemCount: widget.itemCount ?? _attendanceData.length, // Use dynamic itemCount
+                    itemCount: widget.itemCount ??
+                        _attendanceData.length, // Use dynamic itemCount
                     itemBuilder: (context, index) {
                       final attendance = _attendanceData[index];
                       return Card(
@@ -94,14 +95,15 @@ class _MyListViewState extends State<MyListView> {
                                 color: Colors.black),
                           ),
                           leading: CircleAvatar(
-                            backgroundColor: Colors.purple.withOpacity(0.2),
+                            backgroundColor:
+                                Colors.purple.withValues(alpha: 0.5),
                             child: const Icon(Icons.work_history_rounded,
                                 color: Colors.purple),
                           ),
                           trailing: CircleAvatar(
                             backgroundColor: attendance['expired'] == "NO"
-                                ? Colors.green.withOpacity(0.2)
-                                : Colors.red.withOpacity(0.2),
+                                ? Colors.green.withValues(green: 0.2)
+                                : Colors.red.withValues(red: 0.2),
                             child: Icon(
                               attendance['expired'] == "NO"
                                   ? Icons.check_circle

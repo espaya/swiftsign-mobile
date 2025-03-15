@@ -259,6 +259,7 @@ class _NewAttendanceState extends State<NewAttendance> {
                 child: SizedBox(
                   height: 250, // Set a finite height for the MobileScanner
                   child: MobileScanner(
+                    
                     controller: cameraController,
                     fit: BoxFit.cover,
                     onScannerStarted: (arguments) {
