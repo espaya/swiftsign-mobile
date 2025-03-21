@@ -65,7 +65,7 @@ class _MyListViewState extends State<MyListView> {
 
   Future<void> _fetchAttendance(String userId) async {
     final url = Uri.parse(
-        'http://192.168.0.100:8000/api/employee/log-attendance/all/$userId');
+        'http://192.168.0.101:8000/api/employee/log-attendance/all/$userId');
 
     try {
       final response = await http.get(url);

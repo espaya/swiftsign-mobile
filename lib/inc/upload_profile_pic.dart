@@ -19,7 +19,7 @@ class UploadProfilePic {
       File imageFile, String userId, BuildContext context) async {
     try {
       var uri = Uri.parse(
-          "http://192.168.0.100:8000/api/employee/update-profile-picture");
+          "http://192.168.0.101:8000/api/employee/update-profile-picture");
       var request = http.MultipartRequest("POST", uri);
       request.fields['userID'] = userId;
 

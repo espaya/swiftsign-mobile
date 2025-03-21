@@ -81,7 +81,7 @@ class _UsernameEmailScreenState extends State<UsernameEmailScreen> {
     try {
       // Call the update method
       await UpdateEmailUsername.updateUser(
-        userId: widget.userId, // Pass the userId from the widget
+        // userId: widget.userId, // Pass the userId from the widget
         username: username,
         email: email,
       );

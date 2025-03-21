@@ -1,42 +1,58 @@
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 class UpdateEmailUsername {
   // Update username and email via API
   static Future<void> updateUser({
-    required int userId,
     required String username,
     required String email,
+    // required String userId,
   }) async {
-    const String baseUrl =
-        'https://192.168.0.100:8000'; // Replace with your API base URL
-    final String endpoint = '/employee/update-email-username/$userId';
+    final prefs = await SharedPreferences.getInstance();
 
-    final Uri uri = Uri.parse('$baseUrl$endpoint');
+    // Retrieve the stored user data
+    String? userData = prefs.getString('user');
+
+    if (userData == null) {
+      throw Exception("User data not found. Please log in again.");
+    }
+
+    // Decode the JSON string
+    Map<String, dynamic> user = jsonDecode(userData);
+    String? userId = user['id']; // Fetch user ID as a String
+
+    if (userId == null || userId.isEmpty) {
+      throw Exception("User ID is missing. Please log in again.");
+    }
+
+    const String url =
+        'http://192.168.0.101:8000/employee/update-email-username';
+
+    final Uri uri = Uri.parse(url);
 
     try {
-      final response = await http.put(
+      final response = await http.post(
         uri,
         headers: {
           'Content-Type': 'application/json',
-          // Add any additional headers (e.g., authorization token) if needed
         },
         body: jsonEncode({
           'name': username,
           'email': email,
+          'userID': userId,
         }),
       );
 
+      print("User ID in Update After Submission: $userId");
+
       if (response.statusCode == 200) {
-        // Success
         print('Update successful: ${response.body}');
       } else {
-        // Handle API errors
         throw Exception(
             'Failed to update user: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      // Handle network errors
       throw Exception('Failed to update user: $e');
     }
   }

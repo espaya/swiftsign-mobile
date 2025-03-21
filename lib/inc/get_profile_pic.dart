@@ -7,7 +7,7 @@ class GetProfilePic {
   Future<String?> fetchProfilePicture(String userId, BuildContext context) async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.0.100:8000/api/employee/get-profile-pic/$userId'),
+        Uri.parse('http://192.168.0.101:8000/api/employee/get-profile-pic/$userId'),
       );
 
       String message = "Unknown error occurred";

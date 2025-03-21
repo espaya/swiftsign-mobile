@@ -14,7 +14,7 @@ class Auth extends ChangeNotifier {
   Map<String, dynamic>? get user => _user;
 
   Future<void> signIn(BuildContext context) async {
-    const String apiUrl = 'http://192.168.0.100:8000/api/employee/sign-in';
+    const String apiUrl = 'http://192.168.0.101:8000/api/employee/sign-in';
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
@@ -100,7 +100,7 @@ class Auth extends ChangeNotifier {
     try {
       final response = await http.get(
         Uri.parse(
-            'http://192.168.0.100:8000/api/employee/get-profile-pic/$userId'),
+            'http://192.168.0.101:8000/api/employee/get-profile-pic/$userId'),
       );
 
       if (response.statusCode == 200) {
