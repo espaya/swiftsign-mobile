@@ -112,7 +112,8 @@ class _MyListViewState extends State<MyListView> {
                             "${attendance['qr_code_names'].join(', ')}",
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black),
+                                color: Colors.black,
+                                fontSize: 14),
                           ),
                           leading: CircleAvatar(
                             backgroundColor:
@@ -137,8 +138,14 @@ class _MyListViewState extends State<MyListView> {
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("${attendance['logged_at']}"),
-                              Text("${attendance['signed_out_at']}"),
+                              Text(
+                                "${attendance['logged_at']}",
+                                style: TextStyle(fontSize: 12),
+                              ),
+                              Text(
+                                "${attendance['signed_out_at']}",
+                                style: TextStyle(fontSize: 12),
+                              ),
                             ],
                           ),
                         ),

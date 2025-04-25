@@ -112,8 +112,8 @@ class _DashboardState extends State<Dashboard> {
                         borderRadius: BorderRadius.circular(25),
                         boxShadow: [
                           BoxShadow(
-                            color:
-                                Colors.black.withOpacity(0.3), // Shadow color
+                            color: Colors.black
+                                .withValues(alpha: 0.3), // Shadow color
                             blurRadius: 10, // Softness of shadow
                             spreadRadius: 3, // Spread distance
                             offset: const Offset(
@@ -155,8 +155,8 @@ class _DashboardState extends State<Dashboard> {
                         borderRadius: BorderRadius.circular(25),
                         boxShadow: [
                           BoxShadow(
-                            color:
-                                Colors.black.withOpacity(0.3), // Shadow color
+                            color: Colors.black
+                                .withValues(alpha: 0.3), // Shadow color
                             blurRadius: 10, // Softness of shadow
                             spreadRadius: 3, // Spread distance
                             offset: const Offset(
@@ -212,23 +212,11 @@ class _DashboardState extends State<Dashboard> {
               Container(
                 // margin: const EdgeInsets.only(top: 5.0),
                 padding: EdgeInsets.only(top: 10, bottom: 10),
-                height: 210,
-                // decoration: BoxDecoration(
-                //   borderRadius: BorderRadius.circular(35),
-                //   color: Colors.purple[50],
-                //   boxShadow: [
-                //     BoxShadow(
-                //       color: Colors.black.withOpacity(0.3), // Shadow color
-                //       blurRadius: 10, // Softness of shadow
-                //       spreadRadius: 3, // Spread distance
-                //       offset: const Offset(0, 5), // Vertical shadow offset
-                //     ),
-                //   ],
-                // ),
+                height: MediaQuery.of(context).size.height / 0.5,
                 child: ClipRRect(
                   borderRadius:
                       BorderRadius.circular(35), // Apply border radius to child
-                  child: const MyListView(itemCount: 2),
+                  child: const MyListView(itemCount: 4),
                 ),
               ),
             ],
