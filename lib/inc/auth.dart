@@ -4,8 +4,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class Auth extends ChangeNotifier {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
   String errorMessage = "";
   bool isAuthenticated = false; // Track auth state
   Map<String, dynamic>? _user; // Store user data
@@ -31,8 +31,9 @@ class Auth extends ChangeNotifier {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        print('Login successful: ${data['name']}');
-        print('Login successful: ${data['id']}');
+        // Clear the input fields
+        emailController.text = '';
+        passwordController.text = '';
 
         // Save user data to SharedPreferences
         final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -106,7 +107,6 @@ class Auth extends ChangeNotifier {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true) {
-          print(data['image_url']);
           return data['image_url']; // Return the profile picture URL
         }
       }

@@ -63,116 +63,142 @@ class _AccountScreenState extends State<AccountScreen> {
 
     return Scaffold(
       appBar: MyAppBar(context),
+      bottomNavigationBar: Container(
+        margin: EdgeInsets.only(left: 10, right: 10, bottom: 20),
+        child: ElevatedButton(
+          onPressed: () {
+            // Action when button is pressed
+            Navigator.of(context).pushNamed('/username-email');
+          },
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.all(Colors.purple),
+            minimumSize: WidgetStateProperty.all(const Size(300, 70)),
+            padding: WidgetStateProperty.all(const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 10,
+            )),
+          ),
+          child: const Icon(
+            Icons.edit,
+            color: Colors.white,
+            size: 30,
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Center(
-              child: Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundColor:
-                        Colors.grey[300], // Optional background color
-                    child: ClipOval(
-                      child: _profileImageUrl != null
-                          ? Image.network(
-                              _profileImageUrl!, // Use the profile picture URL
-                              fit: BoxFit.cover,
-                              width: 120, // Match the diameter (2 * radius)
-                              height: 120,
-                              loadingBuilder:
-                                  (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes !=
-                                          null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
-                                );
-                              },
-                              errorBuilder: (context, error, stackTrace) {
-                                print("Error loading image: $error");
-                                return Image.asset(
-                                  'images/Sample_User_Icon.png', // Fallback to default image
-                                  fit: BoxFit.cover,
-                                  width: 120,
-                                  height: 120,
-                                );
-                              },
-                            )
-                          : Image.asset(
-                              'images/Sample_User_Icon.png', // Default asset image
-                              fit: BoxFit.cover,
-                              width: 120,
-                              height: 120,
-                            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 25),
+              child: Center(
+                child: Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 60,
+                      backgroundColor:
+                          Colors.grey[300], // Optional background color
+                      child: ClipOval(
+                        child: _profileImageUrl != null
+                            ? Image.network(
+                                _profileImageUrl!, // Use the profile picture URL
+                                fit: BoxFit.cover,
+                                width: 120, // Match the diameter (2 * radius)
+                                height: 120,
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes !=
+                                            null
+                                        ? loadingProgress
+                                                .cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                  );
+                                },
+                                errorBuilder: (context, error, stackTrace) {
+                                  print("Error loading image: $error");
+                                  return Image.asset(
+                                    'images/Sample_User_Icon.png', // Fallback to default image
+                                    fit: BoxFit.cover,
+                                    width: 120,
+                                    height: 120,
+                                  );
+                                },
+                              )
+                            : Image.asset(
+                                'images/Sample_User_Icon.png', // Default asset image
+                                fit: BoxFit.cover,
+                                width: 120,
+                                height: 120,
+                              ),
+                      ),
                     ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: GestureDetector(
-                      onTap: () async {
-                        if (_isUploading) return; // Prevent multiple uploads
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: GestureDetector(
+                        onTap: () async {
+                          if (_isUploading) return; // Prevent multiple uploads
 
-                        UploadProfilePic uploader = UploadProfilePic();
-                        File? imageFile = await uploader.pickImage();
+                          UploadProfilePic uploader = UploadProfilePic();
+                          File? imageFile = await uploader.pickImage();
 
-                        if (imageFile != null) {
-                          String? userId = auth.user!['id'];
-                          if (userId != null) {
-                            setState(() {
-                              _isUploading = true; // Show loader
-                            });
-
-                            try {
-                              // Step 1: Upload the new profile picture
-                              String? imageUrl = await uploader.uploadImage(
-                                  imageFile, userId, context);
-                              if (imageUrl != null) {
-                                // Step 2: Fetch the updated profile picture URL
-                                GetProfilePic getProfilePic = GetProfilePic();
-                                String? updatedImageUrl = await getProfilePic
-                                    .fetchProfilePicture(userId, context);
-                                if (updatedImageUrl != null) {
-                                  setState(() {
-                                    _profileImageUrl =
-                                        updatedImageUrl; // Update the profile picture URL
-                                  });
-                                }
-                              }
-                            } catch (e) {
-                              print("Error uploading image: $e");
-                            } finally {
+                          if (imageFile != null) {
+                            String? userId = auth.user!['id'];
+                            if (userId != null) {
                               setState(() {
-                                _isUploading = false; // Hide loader
+                                _isUploading = true; // Show loader
                               });
+
+                              try {
+                                // Step 1: Upload the new profile picture
+                                String? imageUrl = await uploader.uploadImage(
+                                    imageFile, userId, context);
+                                if (imageUrl != null) {
+                                  // Step 2: Fetch the updated profile picture URL
+                                  GetProfilePic getProfilePic = GetProfilePic();
+                                  String? updatedImageUrl = await getProfilePic
+                                      .fetchProfilePicture(userId, context);
+                                  if (updatedImageUrl != null) {
+                                    setState(() {
+                                      _profileImageUrl =
+                                          updatedImageUrl; // Update the profile picture URL
+                                    });
+                                  }
+                                }
+                              } catch (e) {
+                                print("Error uploading image: $e");
+                              } finally {
+                                setState(() {
+                                  _isUploading = false; // Hide loader
+                                });
+                              }
+                            } else {
+                              print("User ID not found in SharedPreferences");
                             }
-                          } else {
-                            print("User ID not found in SharedPreferences");
                           }
-                        }
-                      },
-                      child: _isUploading
-                          ? const CircularProgressIndicator(
-                              color: Colors.purple,
-                            )
-                          : Container(
-                              height: 37,
-                              width: 37,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(50),
-                                color: Colors.black,
+                        },
+                        child: _isUploading
+                            ? const CircularProgressIndicator(
+                                color: Colors.purple,
+                              )
+                            : Container(
+                                height: 37,
+                                width: 37,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(50),
+                                  color: Colors.black,
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt_outlined,
+                                  color: Colors.white,
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.camera_alt_outlined,
-                                color: Colors.white,
-                              ),
-                            ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             Text(
@@ -229,25 +255,6 @@ class _AccountScreenState extends State<AccountScreen> {
                   ),
                   const Divider(),
                 ],
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // Action when button is pressed
-                Navigator.of(context).pushNamed('/username-email');
-              },
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all(Colors.purple),
-                minimumSize: WidgetStateProperty.all(const Size(300, 60)),
-                padding: WidgetStateProperty.all(const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 10,
-                )),
-              ),
-              child: const Icon(
-                Icons.edit,
-                color: Colors.white,
-                size: 30,
               ),
             ),
           ],
