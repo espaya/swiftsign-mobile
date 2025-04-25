@@ -34,13 +34,13 @@ class _NewAttendanceState extends State<NewAttendance> {
     PermissionStatus status = await Permission.camera.request();
 
     if (status.isDenied) {
-      print("❌ Camera permission denied!");
+      showAlertDialog(context, "❌ Camera permission denied!");
     } else if (status.isPermanentlyDenied) {
-      print(
+      showAlertDialog(context,
           "⚠️ Camera permission permanently denied! Redirecting to settings...");
       openAppSettings();
     } else {
-      print("✅ Camera permission granted!");
+      showAlertDialog(context, "✅ Camera permission granted!");
     }
   }
 
@@ -55,7 +55,6 @@ class _NewAttendanceState extends State<NewAttendance> {
     if (_lastScanTime != null &&
         DateTime.now().difference(_lastScanTime!) <
             const Duration(seconds: 1)) {
-      print("🔄 Ignoring duplicate scan: $scannedData");
       return;
     }
 
@@ -72,7 +71,6 @@ class _NewAttendanceState extends State<NewAttendance> {
         }
 
         String decodedString = utf8.decode(base64.decode(scannedData));
-        // print("✅ Decoded Data: $decodedString");
 
         Map<String, dynamic> jsonData = jsonDecode(decodedString);
         String sessionId = jsonData['session_id'];
@@ -80,13 +78,8 @@ class _NewAttendanceState extends State<NewAttendance> {
         String checkInAt = jsonData['check_in_at'];
         String checkoutAt = jsonData['checkout_at'];
 
-        // print("🆔 Session ID: $sessionId");
-        // print("⏳ Timestamp: $timestamp");
-
         final prefs = await SharedPreferences.getInstance();
         String userID = prefs.getString('id').toString();
-
-        // print("User ID: $userID");
 
         await sendScannedDataToServer(
             sessionId, timestamp, checkInAt, checkoutAt);
@@ -100,11 +93,9 @@ class _NewAttendanceState extends State<NewAttendance> {
 
         // showSnackBar("✅ Attendance logged successfully!");
       } catch (e) {
-        print("❌ Error processing QR code: $e");
+        showAlertDialog(context, "❌ Error processing QR code: $e");
         handleInvalidData();
       }
-    } else {
-      print("🔄 Ignoring subsequent scan: $scannedData");
     }
   }
 
@@ -124,12 +115,9 @@ class _NewAttendanceState extends State<NewAttendance> {
       if (userData != null) {
         Map<String, dynamic> user = jsonDecode(userData);
         userID = user['id'].toString(); // ✅ Ensure it's a String
-        print("Retrieved UserID: $userID");
       } else {
-        print("❌ User data not found in SharedPreferences");
+        showAlertDialog(context, "❌ User data not found in SharedPreferences");
       }
-
-      print("User ID: $userID");
 
       Map<String, dynamic> body = {
         "userID": userID,
@@ -145,7 +133,6 @@ class _NewAttendanceState extends State<NewAttendance> {
       );
 
       if (response.statusCode == 200) {
-        print("✅ Successfully logged attendance: ${response.body}");
         Map<String, dynamic> responseData = jsonDecode(response.body);
         showAlertDialog(context, responseData['message']);
       } else {
@@ -154,7 +141,7 @@ class _NewAttendanceState extends State<NewAttendance> {
             ? responseData['message']
             : "Unknown error occurred.";
 
-        print(
+        showAlertDialog(context,
             "⚠️ Failed to send data. Status: ${response.statusCode}, Response: ${response.body}");
 
         // Displaying the 400 error
@@ -168,12 +155,10 @@ class _NewAttendanceState extends State<NewAttendance> {
                 .map((errorList) => errorList.join("\n"))
                 .join("\n");
 
-            print("⚠️ Validation Errors: $errorMessages");
             showAlertDialog(context, "⚠️ $errorMessages");
           } else {
-            print("⚠️ Unexpected validation error format: ${response.body}");
-            showAlertDialog(
-                context, "⚠️ Validation failed. Please check your input.");
+            showAlertDialog(context,
+                "⚠️ Validation failed. Please check your input. ${response.body}");
           }
         } else {
           showAlertDialog(
@@ -181,8 +166,7 @@ class _NewAttendanceState extends State<NewAttendance> {
         }
       }
     } catch (e) {
-      print("❌ Error sending data to server: $e");
-      showAlertDialog(context, "❌ Error connecting to server!");
+      showAlertDialog(context, "❌ Error sending data to server: $e");
     }
   }
 
@@ -357,7 +341,6 @@ class _NewAttendanceState extends State<NewAttendance> {
                         controller: cameraController,
                         fit: BoxFit.cover,
                         onScannerStarted: (arguments) {
-                          print("📷 Camera is ready");
                           setState(() {
                             _isCameraRunning = true; // Update camera state
                           });
