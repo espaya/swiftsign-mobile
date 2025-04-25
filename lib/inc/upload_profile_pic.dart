@@ -62,7 +62,6 @@ class UploadProfilePic {
       // Show the response in a modal
       _showResponseModal(context, message, isSuccess);
     } catch (e) {
-      print("Error uploading image: $e");
       _showResponseModal(context, "An error occurred: $e", false);
     }
     return null; // Return null if the request fails

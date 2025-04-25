@@ -38,6 +38,8 @@ class _LoginState extends State<Login> {
     }
   }
 
+  
+
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<Auth>(context);
@@ -48,7 +50,7 @@ class _LoginState extends State<Login> {
         child: Container(
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height,
-          padding: const EdgeInsets.only(top: 30.0),
+          padding: const EdgeInsets.only(top: 100.0),
           decoration: const BoxDecoration(
               gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -66,17 +68,6 @@ class _LoginState extends State<Login> {
               const Text(
                 "SIGN IN TO CONTINUE",
                 style: TextStyle(fontSize: 20.0),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.only(top: 0.0, left: 50.0, right: 50.0),
-                child: Text(
-                  textAlign: TextAlign.center,
-                  auth.errorMessage.isNotEmpty ? auth.errorMessage : "",
-                  style: const TextStyle(
-                    color: Colors.white,
-                  ),
-                ),
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 30.0, left: 30, right: 30),

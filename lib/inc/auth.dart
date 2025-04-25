@@ -6,7 +6,6 @@ import 'package:http/http.dart' as http;
 class Auth extends ChangeNotifier {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-  String errorMessage = "";
   bool isAuthenticated = false; // Track auth state
   Map<String, dynamic>? _user; // Store user data
 
@@ -56,19 +55,17 @@ class Auth extends ChangeNotifier {
           'id': data['id']?.toString(),
         };
 
-        // Clear error message
-        errorMessage = "";
         isAuthenticated = true;
         notifyListeners();
 
         // Navigate to dashboard
         Navigator.of(context).pushNamed('/dashboard');
       } else {
-        errorMessage = data['message'] ?? "An error occurred";
+        _showErrorDialog(context, data['message'] ?? "An error occurred");
         notifyListeners();
       }
     } catch (e) {
-      errorMessage = "Server error. Please try again later. $e";
+      _showErrorDialog(context, "Server error. Please try again later. $e");
       notifyListeners();
     }
   }
@@ -115,5 +112,21 @@ class Auth extends ChangeNotifier {
       print("Error fetching profile picture: $e");
       return null;
     }
+  }
+
+  static void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Error"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
   }
 }

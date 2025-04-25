@@ -119,11 +119,7 @@ class UpdateEmailUsername {
     }
   }
 
-  // ✅ Now static so it can be used inside static updateUser
-  static bool _isJsonResponse(http.Response response) {
-    final contentType = response.headers['content-type'];
-    return contentType != null && contentType.contains('application/json');
-  }
+
 
   // ✅ Now static and simplified HTML error extractor
   static String? _parseHtmlError(String htmlBody) {
